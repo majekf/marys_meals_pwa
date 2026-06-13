@@ -16,8 +16,8 @@ const FACTS = [
   },
   {
     icon: '🌍',
-    title: '2.4 milióna detí',
-    description: 'Mary\'s Meals denne nakŕmi viac ako 2.4 milióna detí v 18 krajinách',
+    title: 'Viac ako 3 milióny detí',
+    description: 'Mary\'s Meals denne nakŕmi viac ako 3 milióny detí v 16 krajinách',
   },
   {
     icon: '💪',
