@@ -32,22 +32,39 @@ Po kliknutí na „Pre deti" sa otvorí **menu hier**. Dieťa si vyberie jednu z
 **Súbory v repozitári:**
 - `src/screens/GameMenu/GameMenu.tsx` – menu s výberom hier
 - `src/screens/GameMenu/GameMenu.module.css` – vizuálny štýl menu
+- `src/screens/GameMenu/gamesData.ts` – zoznam všetkých hier s konfiguračnými kľúčmi (zdieľané s navigačným hookom)
 
 ---
 
 ### Hra 1 – Miska jedla 🍲
 
-Dieťa **ťahá ingrediencie** do misky a zostavuje „likuni phala" – výživnú kašu, ktorú Mary's Meals skutočne varí pre deti v Afrike. Ingrediencie sú: kukurica, sója, cukor a vitamíny.
+Dieťa pripravuje **likuni phala** – výživnú kašu, ktorú Mary's Meals varí pre deti v Afrike. Úlohou je naskladať správnu kombináciu surovín v správnom množstve.
 
-- Každú ingredienciu treba presunúť prstom (alebo myšou) a pustiť ju do misky
-- Po pridaní každej ingrediencie sa miska napĺňa
-- Keď sú všetky štyri ingrediencie v miske, hra sa dokončí s gratulačnou správou
+**Správne suroviny (koľko lyžičiek treba):**
+| Surovina | Počet | Vizuál |
+|---|---|---|
+| 🌽 Kukuričná kaša | 7 lyžičiek | žltá |
+| 🫘 Sója | 2 lyžičky | hnedá |
+| 🍯 Cukor | 1 lyžička | svetložltá |
+| ⭐ Vitamíny | 1 hviezdička | zelená |
 
-Hra učí deti, z čoho sa skladá obed, ktorý Mary's Meals varí.
+**Nesprávne suroviny (lákavé, ale nepatria do kaše):**
+Cola 🥤, Čipsy 🍟, Lízanka 🍭, Burger 🍔, Čokoláda 🍫, Zmrzlina 🍦, Kečup 🍅, Cukríky 🍬
+
+- Dieťa ťahá jednotlivé „lyžičky" (malé kopčeky) surovín do misky
+- Pri každom ťahu sa pridá jedna jednotka danej suroviny
+- Progres sa zobrazuje **vizuálne** pomocou ikon lyžičiek/hviezdičiek (nie číslami)
+- Ak dieťa pridá **nesprávnu surovinu**, zobrazí sa vtipná správa (napr. „Čokoláda je dobrota, ale deti potrebujú výživu! 🍫")
+- Ak dieťa pridá **príliš veľa** správnej suroviny, zobrazí sa upozornenie (napr. „Ups, už je to príliš sladké! 🍯😋" pre cukor)
+- Po správnom dokončení sa miska sfarbí nazeleno a zobrazí sa gratulačná správa
+- Tlačidlo **„Hrať znova"** resetuje hru a vráti všetky suroviny na pôvodné miesta
+- V navigačnej lište sú šípky **‹ / ›** na priame prechody medzi hrami bez návratu do menu
+
+Hra učí deti, z čoho sa skladá obed, ktorý Mary's Meals varí, a podporuje pochopenie správneho pomeru surovín.
 
 **Súbory v repozitári:**
-- `src/screens/BowlGame/BowlGame.tsx` – herná logika (ťahanie, kontrola dopadu do misky, dokončenie)
-- `src/screens/BowlGame/BowlGame.module.css` – vizuálny štýl misky a ingrediencií
+- `src/screens/BowlGame/BowlGame.tsx` – herná logika (ťahanie, počítanie lyžičiek, validácia, chybové hlášky, dokončenie, reset)
+- `src/screens/BowlGame/BowlGame.module.css` – vizuálny štýl misky, surovín a progress panelu
 
 ---
 
@@ -59,7 +76,7 @@ Dieťa **spáruje predmety s pomocníkmi** v kuchyni. Na obrazovke sú tri dobro
 - Potom klikne na správneho pomocníka
 - Ak je dvojica správna, spojenie sa potvrdí; ak nie, obrazovka upozorní na chybu
 
-Hra učí, kto všetko sa podieľa na príprave jedla pre deti.
+Hra učí, kto všetko sa podieľa na príprave jedla pre deti. V navigačnej lište sú šípky **‹ / ›** na priame prechody medzi hrami.
 
 **Súbory v repozitári:**
 - `src/screens/VolunteerKitchen/VolunteerKitchen.tsx` – herná logika (výber, párovanie, validácia)
@@ -138,15 +155,20 @@ Po výbere možnosti sa zobrazí **kontaktný formulár** s poliami pre meno a e
 
 Na každej podstránke (okrem úvodnej obrazovky) je viditeľná **navigačná lišta** s tlačidlami „Späť" a „Domov". Lišta sa farebne líši: v detskej sekcii je modrá, v dospelej sekcii biela.
 
+Na obrazovkách hier (Miska jedla, Kuchyňa) sa navyše zobrazujú **šípky ‹ / ›** pre priamy prechod na predchádzajúcu alebo nasledujúcu hru – bez potreby vracať sa do menu hier. Zobrazí sa len šípka, ktorá má zmysel (napr. pri prvej hre len šípka doprava).
+
 **Súbory v repozitári:**
-- `src/components/shared/Header/Header.tsx` – lišta, tlačidlá, navigácia
+- `src/components/shared/Header/Header.tsx` – lišta, tlačidlá, navigácia; prop `showGameNav` zapína šípky medzi hrami
 - `src/components/shared/Header/Header.module.css` – vizuálny štýl
+- `src/hooks/useGameNavigation.ts` – hook, ktorý určuje predchádzajúcu a nasledujúcu hru podľa aktuálnej URL a configu
 
 ---
 
 ### Spätná väzba (správa po akcii)
 
 Po úspešnom dokončení hry alebo odoslaní formulára sa na obrazovke objaví **animovaná ikona** (zaškrtnutie/krížik) s krátkym textom. Táto správa automaticky zmizne po niekoľkých sekundách.
+
+Farba ikony a textu pri úspechu je **biela** (na tmavom polopriesvitnom pozadí), čo zaručuje dobrú čitateľnosť na tyrkysovom aj oranžovom pozadí aplikácie.
 
 **Súbory v repozitári:**
 - `src/components/shared/FeedbackOverlay/FeedbackOverlay.tsx` – overlay s animáciou
@@ -160,6 +182,7 @@ Aplikácia prehráva krátke zvukové efekty pri správnej odpovedi, chybe a dok
 
 **Súbory v repozitári:**
 - `src/hooks/useAudio.ts` – logika prehrávania zvukov
+- `src/hooks/useGameNavigation.ts` – navigácia medzi hrami (prev/next) na obrazovkách hier
 - `public/audio/sfx/` – priečinok pre zvukové súbory (success.mp3, error.mp3, complete.mp3)
 
 ---

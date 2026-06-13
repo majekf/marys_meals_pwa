@@ -11,8 +11,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: var(--spacing-lg);
-  gap: var(--spacing-xl);
+  padding: var(--spacing-md);
+  gap: var(--spacing-md);
+  overflow-y: auto;
 }
 
 .instructions {
@@ -21,12 +22,12 @@
 }
 
 .instructions h2 {
-  font-size: var(--font-size-xl);
-  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--spacing-xs);
 }
 
 .instructions p {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   opacity: 0.9;
   margin: 0;
 }
@@ -36,15 +37,93 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
   width: 100%;
-  max-width: 800px;
-  gap: var(--spacing-xl);
+  max-width: 900px;
+  gap: var(--spacing-md);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PROGRESS PANEL - Visual progress indicators
+   ═══════════════════════════════════════════════════════════════════════════ */
+.progressPanel {
+  display: flex;
+  gap: var(--spacing-lg);
+  background: rgba(255, 255, 255, 0.95);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.progressItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.progressIcon {
+  font-size: 1.5rem;
+}
+
+.progressDots {
+  display: flex;
+  gap: 2px;
+}
+
+.progressDot {
+  font-size: 0.9rem;
+  opacity: 0.25;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.progressDot.filled {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.checkmark {
+  width: 20px;
+  height: 20px;
+  background: var(--color-success);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+  margin-left: var(--spacing-xs);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   INGREDIENTS GRID
+   ═══════════════════════════════════════════════════════════════════════════ */
+.ingredientsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  width: 100%;
+}
+
+.ingredientSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.sectionLabel {
+  color: white;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+  margin: 0;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .ingredientsRow {
   display: flex;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-sm);
   flex-wrap: wrap;
   justify-content: center;
 }
@@ -54,67 +133,66 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-sm);
-  width: 100px;
-  height: 100px;
-  border-radius: var(--radius-xl);
+  gap: 2px;
+  width: 70px;
+  height: 70px;
+  border-radius: var(--radius-lg);
   cursor: grab;
   touch-action: none;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-md);
   border: 3px solid white;
   position: relative;
   user-select: none;
+  transition: border-color 0.3s ease, opacity 0.3s ease;
 }
 
 .ingredient:active {
   cursor: grabbing;
 }
 
-.ingredient.added {
-  cursor: default;
+.ingredient.correct {
+  border-color: rgba(76, 175, 80, 0.6);
+}
+
+.ingredient.correct.completed {
+  opacity: 0.5;
   border-color: var(--color-success);
+  cursor: default;
 }
 
-.emoji {
-  font-size: 2.5rem;
+.ingredient.wrong {
+  border-color: rgba(229, 57, 53, 0.4);
 }
 
-.name {
-  font-size: var(--font-size-xs);
+.ingredientIcon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.ingredientName {
+  font-size: 0.6rem;
   font-weight: var(--font-weight-semibold);
   color: var(--color-text);
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+  text-align: center;
+  line-height: 1.1;
 }
 
-.checkmark {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  width: 28px;
-  height: 28px;
-  background: var(--color-success);
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--font-size-sm);
-  font-weight: bold;
-  box-shadow: var(--shadow-md);
-}
-
+/* ═══════════════════════════════════════════════════════════════════════════
+   BOWL
+   ═══════════════════════════════════════════════════════════════════════════ */
 .bowlArea {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: var(--spacing-sm);
 }
 
 .bowl {
-  width: 200px;
-  height: 140px;
+  width: 180px;
+  height: 120px;
   background: linear-gradient(180deg, #f5f5dc 0%, #e8e4c9 50%, #d4ceb5 100%);
-  border-radius: 0 0 100px 100px;
+  border-radius: 0 0 90px 90px;
   border: 4px solid #8B7355;
   border-top: none;
   display: flex;
@@ -124,15 +202,16 @@
   box-shadow: 
     0 10px 30px rgba(0, 0, 0, 0.2),
     inset 0 -10px 20px rgba(0, 0, 0, 0.1);
+  transition: background 0.3s ease;
 }
 
 .bowl::before {
   content: '';
   position: absolute;
   top: -4px;
-  left: -15px;
-  right: -15px;
-  height: 20px;
+  left: -12px;
+  right: -12px;
+  height: 18px;
   background: linear-gradient(180deg, #a08060 0%, #8B7355 100%);
   border-radius: 10px 10px 0 0;
 }
@@ -141,34 +220,41 @@
   background: linear-gradient(180deg, #e0f7fa 0%, #b2ebf2 50%, #80deea 100%);
 }
 
+.bowlComplete {
+  background: linear-gradient(180deg, #c8e6c9 0%, #a5d6a7 50%, #81c784 100%);
+  border-color: var(--color-success);
+}
+
+.bowlComplete::before {
+  background: linear-gradient(180deg, #66bb6a 0%, #4caf50 100%);
+}
+
 .bowlContents {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-xs);
+  gap: 2px;
   justify-content: center;
-  padding: var(--spacing-md);
-  margin-top: var(--spacing-md);
+  align-items: center;
+  padding: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+  max-width: 150px;
 }
 
 .bowlIngredient {
-  font-size: 1.5rem;
+  font-size: 1rem;
 }
 
 .bowlPlaceholder {
-  font-size: 3rem;
-  opacity: 0.5;
+  font-size: 2.5rem;
+  opacity: 0.4;
 }
 
-.progress {
-  color: white;
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
+/* ═══════════════════════════════════════════════════════════════════════════
+   BUTTONS
+   ═══════════════════════════════════════════════════════════════════════════ */
 .resetButton {
-  padding: var(--spacing-md) var(--spacing-xl);
-  font-size: var(--font-size-lg);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
   background: var(--color-accent);
   color: white;
@@ -176,25 +262,78 @@
   border-radius: var(--radius-lg);
   cursor: pointer;
   box-shadow: var(--shadow-lg);
-  min-height: var(--touch-comfortable);
+  min-height: var(--touch-min);
 }
 
 .resetButton:hover {
   background: var(--color-accent-dark);
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 600px) {
+  .ingredient {
+    width: 60px;
+    height: 60px;
+  }
+
+  .ingredientIcon {
+    font-size: 1.5rem;
+  }
+
+  .ingredientName {
+    font-size: 0.5rem;
+  }
+
+  .bowl {
+    width: 150px;
+    height: 100px;
+  }
+
+  .progressPanel {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    gap: var(--spacing-sm);
+  }
+
+  .progressIcon {
+    font-size: 1.2rem;
+  }
+
+  .progressDot {
+    font-size: 0.7rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .main {
+    padding: var(--spacing-lg);
+    gap: var(--spacing-lg);
+  }
+
+  .instructions h2 {
+    font-size: var(--font-size-xl);
+  }
+
   .ingredient {
     width: 80px;
     height: 80px;
   }
 
-  .emoji {
+  .ingredientIcon {
     font-size: 2rem;
   }
 
+  .ingredientName {
+    font-size: 0.7rem;
+  }
+
   .bowl {
-    width: 160px;
-    height: 110px;
+    width: 220px;
+    height: 150px;
+  }
+
+  .bowlIngredient {
+    font-size: 1.2rem;
   }
 }
