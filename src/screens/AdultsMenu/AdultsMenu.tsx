@@ -75,7 +75,7 @@ export function AdultsMenu() {
 
   return (
     <div className={styles.container}>
-      <Header title="Pre dospelých" variant="adults" />
+      <Header title="Pre zvedavých" variant="adults" />
       
       <main className={styles.main}>
         <motion.h2

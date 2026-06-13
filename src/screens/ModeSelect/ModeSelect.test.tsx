@@ -66,7 +66,7 @@ describe('ModeSelect', () => {
   it('should render adults mode button when enabled', async () => {
     renderWithProviders(<ModeSelect />);
 
-    const adultsButton = await screen.findByText('Pre dospelých');
+    const adultsButton = await screen.findByText('Pre zvedavých');
     expect(adultsButton).toBeInTheDocument();
   });
 
