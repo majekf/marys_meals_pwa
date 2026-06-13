@@ -86,6 +86,21 @@ Key settings:
 - Tests that need config must wrap with `<ConfigProvider>`
 - When mocking framer-motion, stub `motion.div`, `motion.button`, etc. as plain HTML elements and `AnimatePresence` as a passthrough fragment — framer-motion props like `whileHover` / `whileTap` are not valid HTML attributes and cause React warnings in tests
 
+### Testing Workflow
+
+**After implementing code changes, always run the full test suite:**
+
+```bash
+npm run test:run
+```
+
+**Test update policy:**
+- ✅ Update tests **directly connected** to your changes (e.g., if you modify a component's API or hook contract, update its unit tests).
+- ❌ Do **NOT** auto-fix or modify unrelated tests that break due to your changes — this masks real bugs.
+- ⚠️ **If unrelated tests fail after your changes:** Report the failure and ask the person for clarification on whether the implementation or the tests should change.
+
+This prevents accidental breaking of unrelated functionality and ensures all issues are consciously reviewed.
+
 ## Key Hooks
 
 | Hook | Purpose |
