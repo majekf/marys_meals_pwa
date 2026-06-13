@@ -162,6 +162,23 @@ When all content children of a flex container are `position: absolute` (e.g., sc
 
 Also ensure `#root` in `src/index.css` is kept simple: `width: 100%; min-height: 100vh;` — do not add `display: flex; flex-direction: column` or constrain width, as it breaks full-screen layouts.
 
+**Positioning framer-motion draggable elements (anchor wrapper pattern):**
+Framer-motion owns the `transform` property on any `motion.div` it controls. Never use `transform` (or `top`/`left` with `translate`) to place a draggable element — framer-motion will override or conflict with it. Instead, wrap the draggable in a plain `<div>` anchor that handles positioning, and let the inner `motion.div` live at local origin `0,0`:
+
+```tsx
+{/* Plain div — handles placement via transform */}
+<div style={{ position: 'absolute', left: '50%', top: '50%', width: 0, height: 0,
+               transform: `translate(${offset.x}px, ${offset.y}px)`, pointerEvents: 'none' }}>
+  {/* motion.div — origin is 0,0; dragSnapToOrigin snaps back correctly */}
+  <motion.div drag dragSnapToOrigin style={{ position: 'absolute', left: -36, top: -36,
+                                              pointerEvents: 'auto', touchAction: 'none' }}>
+    …
+  </motion.div>
+</div>
+```
+
+This keeps ring/placement logic in the anchor and drag logic in the motion element, with no conflicts.
+
 ## PWA / Deployment
 
 - Service worker via `vite-plugin-pwa` (Workbox); configured in `vite.config.ts`
