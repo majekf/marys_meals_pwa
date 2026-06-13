@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useLayoutEffect } from 'react';
 import { motion } from 'framer-motion';
 import type { PanInfo } from 'framer-motion';
 import { Header, FeedbackOverlay } from '../../components/shared';
@@ -6,130 +6,106 @@ import { useIdleTimer, useAudio } from '../../hooks';
 import styles from './BowlGame.module.css';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// CORRECT INGREDIENTS
-// Positions: scattered around edges of playField, avoiding the center bowl.
-// Safe zones verified for both portrait (768×850 playField) and landscape
-// (1024×594 playField) tablets — bowl occupies ~37-63% x, ~37-63% y.
+// INGREDIENT LAYOUT – formula-based ellipse ring
+// Tiles are placed via a zero-size anchor div (no framer-motion involvement).
+// The draggable motion.div inside has origin 0,0 so dragSnapToOrigin always
+// snaps back to the anchor's center — the tile's ring position.
 // ═══════════════════════════════════════════════════════════════════════════
-const CORRECT_INGREDIENTS = [
-  {
-    id: 'corn' as const,
-    name: 'Kukuričná kaša',
-    icon: '🌽',
-    color: '#FFD54F',
-    targetCount: 7,
-    unit: '🥄' as const,
-    overflowMessage: 'Ups! Príliš veľa kaše – miska pretečie! 🌽💨',
-    position: { top: '5%', left: '2%' },     // left column, top
-  },
-  {
-    id: 'soy' as const,
-    name: 'Sója',
-    icon: '🫘',
-    color: '#8D6E63',
-    targetCount: 2,
-    unit: '🥄' as const,
-    overflowMessage: 'Ojoj, príliš veľa sóje! Bude to príliš husté. 🫘',
-    position: { top: '5%', left: '75%' },    // right column, top
-  },
-  {
-    id: 'sugar' as const,
-    name: 'Cukor',
-    icon: '🍯',
-    color: '#FFFDE7',
-    targetCount: 1,
-    unit: '🥄' as const,
-    overflowMessage: 'Ups, už je to príliš sladké! 🍯😋',
-    position: { top: '2%', left: '32%' },    // top strip, center-left
-  },
-  {
-    id: 'vitamins' as const,
-    name: 'Vitamíny',
-    icon: '⭐',
-    color: '#C8E6C9',
-    targetCount: 1,
-    unit: '⭐' as const,
-    overflowMessage: 'Stačí jedna vitamínová hviezdička! ⭐',
-    position: { top: '2%', left: '53%' },    // top strip, center-right
-  },
-] as const;
+const TILE_SIZE = 72;
+const BASE_RADIUS = 210;
 
-// ═══════════════════════════════════════════════════════════════════════════
-// WRONG INGREDIENTS – tempting but not for nutritious porridge
-// ═══════════════════════════════════════════════════════════════════════════
-const WRONG_INGREDIENTS = [
-  {
-    id: 'cola' as const,
-    name: 'Cola',
-    icon: '🥤',
-    color: '#5D4037',
-    errorMessage: 'Cola do kaše nepatrí! Deti potrebujú výživnú kašu, nie sladký nápoj. 🚫🥤',
-    position: { top: '30%', left: '2%' },    // left column, mid
-  },
-  {
-    id: 'chips' as const,
-    name: 'Čipsy',
-    icon: '🍟',
-    color: '#FFB74D',
-    errorMessage: 'Čipsy sú chutné, ale do kaše nepatria! 🍟❌',
-    position: { top: '55%', left: '2%' },    // left column, lower-mid
-  },
-  {
-    id: 'lollipop' as const,
-    name: 'Lízanka',
-    icon: '🍭',
-    color: '#F48FB1',
-    errorMessage: 'Lízanka je sladká, ale deti potrebujú skutočné jedlo plné správnej výživy. 🍭',
-    position: { top: '78%', left: '2%' },    // left column, bottom
-  },
-  {
-    id: 'burger' as const,
-    name: 'Burger',
-    icon: '🍔',
-    color: '#A1887F',
-    errorMessage: 'Burger do kaše? To by bolo divné! 🍔😄',
-    position: { top: '30%', left: '75%' },   // right column, mid
-  },
-  {
-    id: 'chocolate' as const,
-    name: 'Čokoláda',
-    icon: '🍫',
-    color: '#6D4C41',
-    errorMessage: 'Čokoláda je dobrota, ale deti potrebujú výživu! 🍫',
-    position: { top: '55%', left: '75%' },   // right column, lower-mid
-  },
-  {
-    id: 'icecream' as const,
-    name: 'Zmrzlina',
-    icon: '🍦',
-    color: '#FFCCBC',
-    errorMessage: 'Zmrzlina by sa roztopila! Do kaše nepatrí. 🍦💧',
-    position: { top: '78%', left: '75%' },   // right column, bottom
-  },
-  {
-    id: 'ketchup' as const,
-    name: 'Kečup',
-    icon: '🍅',
-    color: '#EF5350',
-    errorMessage: 'Kečup do kaše? To by pokazilo chuť. 🍅🙈',
-    position: { top: '78%', left: '32%' },   // bottom strip, center-left
-  },
-  {
-    id: 'candy' as const,
-    name: 'Cukríky',
-    icon: '🍬',
-    color: '#CE93D8',
-    errorMessage: 'Cukríky sú chutné ale nie dosť výživné! 🍬',
-    position: { top: '78%', left: '53%' },   // bottom strip, center-right
-  },
-] as const;
+const organicOffsets: ReadonlyArray<{ x: number; y: number }> = [
+  { x: 0, y: -8 },
+  { x: 10, y: -4 },
+  { x: 8, y: 8 },
+  { x: 0, y: 12 },
+  { x: -10, y: 6 },
+  { x: -12, y: -4 },
+  { x: 0, y: 10 },
+  { x: 12, y: 4 },
+  { x: 8, y: -8 },
+  { x: -4, y: -12 },
+  { x: -12, y: 2 },
+  { x: -6, y: 10 },
+];
 
-type CorrectIngredientId = (typeof CORRECT_INGREDIENTS)[number]['id'];
-type WrongIngredientId = (typeof WRONG_INGREDIENTS)[number]['id'];
-type AllIngredientId = CorrectIngredientId | WrongIngredientId;
+function getSafeRadius(fieldSize: { width: number; height: number }): number {
+  if (!fieldSize.width || !fieldSize.height) return BASE_RADIUS;
+  const padding = 24;
+  const halfTile = TILE_SIZE / 2;
+  const maxX = fieldSize.width / 2 - halfTile - padding;
+  const maxY = fieldSize.height / 2 - halfTile - padding;
+  const safeRadius = Math.min(BASE_RADIUS, maxX / 1.12, maxY / 0.82);
+  return Math.max(120, safeRadius);
+}
 
-const isCorrectIngredient = (id: AllIngredientId): id is CorrectIngredientId =>
-  CORRECT_INGREDIENTS.some((ing) => ing.id === id);
+function getIngredientOffset(
+  index: number,
+  fieldSize: { width: number; height: number }
+): { x: number; y: number } {
+  const angle = ((index * 30 - 90) * Math.PI) / 180;
+  const radius = getSafeRadius(fieldSize);
+  const ellipseX = radius * 1.12;
+  const ellipseY = radius * 0.82;
+  const organic = organicOffsets[index % organicOffsets.length];
+  return {
+    x: Math.cos(angle) * ellipseX + organic.x,
+    y: Math.sin(angle) * ellipseY + organic.y,
+  };
+}
+
+function useElementSize() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  useLayoutEffect(() => {
+    if (!ref.current) return;
+    const observer = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      setSize({ width, height });
+    });
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return [ref, size] as const;
+}
+
+// Combined ingredients array: interleave correct and wrong for mixed layout
+type IngredientData = {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  isCorrect: boolean;
+  // Correct-only fields
+  targetCount?: number;
+  unit?: string;
+  overflowMessage?: string;
+  // Wrong-only field
+  errorMessage?: string;
+};
+
+const ALL_INGREDIENTS: ReadonlyArray<IngredientData> = [
+  // Mixed order: C, W, C, W, W, C, W, W, C, W, W, W
+  { id: 'corn', name: 'Kukuričná kaša', icon: '🌽', color: '#FFD54F', isCorrect: true, targetCount: 7, unit: '🥄', overflowMessage: 'Ups! Príliš veľa kaše – miska pretečie! 🌽💨' },
+  { id: 'cola', name: 'Cola', icon: '🥤', color: '#5D4037', isCorrect: false, errorMessage: 'Cola do kaše nepatrí! Deti potrebujú výživnú kašu, nie sladký nápoj. 🚫🥤' },
+  { id: 'soy', name: 'Sója', icon: '🫘', color: '#8D6E63', isCorrect: true, targetCount: 2, unit: '🥄', overflowMessage: 'Ojoj, príliš veľa sóje! Bude to príliš husté. 🫘' },
+  { id: 'chips', name: 'Čipsy', icon: '🍟', color: '#FFB74D', isCorrect: false, errorMessage: 'Čipsy sú chutné, ale do kaše nepatria! 🍟❌' },
+  { id: 'lollipop', name: 'Lízanka', icon: '🍭', color: '#F48FB1', isCorrect: false, errorMessage: 'Lízanka je sladká, ale deti potrebujú skutočné jedlo plné správnej výživy. 🍭' },
+  { id: 'sugar', name: 'Cukor', icon: '🍯', color: '#FFFDE7', isCorrect: true, targetCount: 1, unit: '🥄', overflowMessage: 'Ups, už je to príliš sladké! 🍯😋' },
+  { id: 'burger', name: 'Burger', icon: '🍔', color: '#A1887F', isCorrect: false, errorMessage: 'Burger do kaše? To by bolo divné! 🍔😄' },
+  { id: 'chocolate', name: 'Čokoláda', icon: '🍫', color: '#6D4C41', isCorrect: false, errorMessage: 'Čokoláda je dobrota, ale deti potrebujú výživu! 🍫' },
+  { id: 'vitamins', name: 'Vitamíny', icon: '⭐', color: '#C8E6C9', isCorrect: true, targetCount: 1, unit: '⭐', overflowMessage: 'Stačí jedna vitamínová hviezdička! ⭐' },
+  { id: 'icecream', name: 'Zmrzlina', icon: '🍦', color: '#FFCCBC', isCorrect: false, errorMessage: 'Zmrzlina by sa roztopila! Do kaše nepatrí. 🍦💧' },
+  { id: 'ketchup', name: 'Kečup', icon: '🍅', color: '#EF5350', isCorrect: false, errorMessage: 'Kečup do kaše? To by pokazilo chuť. 🍅🙈' },
+  { id: 'candy', name: 'Cukríky', icon: '🍬', color: '#CE93D8', isCorrect: false, errorMessage: 'Cukríky sú chutné ale nie dosť výživné! 🍬' },
+];
+
+// IDs of correct ingredients for state management
+const CORRECT_IDS = ['corn', 'soy', 'sugar', 'vitamins'] as const;
+type CorrectIngredientId = (typeof CORRECT_IDS)[number];
+
+const getCorrectIngredient = (id: string) =>
+  ALL_INGREDIENTS.find((ing) => ing.id === id && ing.isCorrect) as IngredientData & { targetCount: number; unit: string; overflowMessage: string } | undefined;
 
 export function BowlGame() {
   const [ingredientCounts, setIngredientCounts] = useState<Record<CorrectIngredientId, number>>({
@@ -140,29 +116,30 @@ export function BowlGame() {
   });
   const [showSuccess, setShowSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [draggedIngredient, setDraggedIngredient] = useState<AllIngredientId | null>(null);
+  const [draggedIngredient, setDraggedIngredient] = useState<string | null>(null);
   const [resetKey, setResetKey] = useState(0);
   const bowlRef = useRef<HTMLDivElement>(null);
+  const [playFieldRef, fieldSize] = useElementSize();
   const { playSuccess, playError, playComplete } = useAudio();
 
   useIdleTimer();
 
-  // Auto-dismiss error after 3 seconds.
+  // Auto-dismiss error after 2 seconds.
   // Each time errorMessage changes, the previous timer is cancelled and a new one starts.
   useEffect(() => {
     if (!errorMessage) return;
-    const timer = setTimeout(() => setErrorMessage(null), 3000);
+    const timer = setTimeout(() => setErrorMessage(null), 2000);
     return () => clearTimeout(timer);
   }, [errorMessage]);
 
-  const isComplete = CORRECT_INGREDIENTS.every(
-    (ing) => ingredientCounts[ing.id] === ing.targetCount
+  const isComplete = CORRECT_IDS.every(
+    (id) => ingredientCounts[id] === getCorrectIngredient(id)?.targetCount
   );
 
   const totalItemsInBowl = Object.values(ingredientCounts).reduce((sum, c) => sum + c, 0);
 
   const checkDropInBowl = useCallback(
-    (info: PanInfo, ingredientId: AllIngredientId) => {
+    (info: PanInfo, ingredientId: string) => {
       if (!bowlRef.current) return;
 
       const bowlRect = bowlRef.current.getBoundingClientRect();
@@ -174,21 +151,21 @@ export function BowlGame() {
 
       if (!inBowl) return;
 
+      const ingredient = ALL_INGREDIENTS.find((ing) => ing.id === ingredientId);
+      if (!ingredient) return;
+
       // Wrong ingredient dropped in bowl
-      if (!isCorrectIngredient(ingredientId)) {
-        const wrongIng = WRONG_INGREDIENTS.find((ing) => ing.id === ingredientId);
-        if (wrongIng) {
-          setErrorMessage(wrongIng.errorMessage);
-          playError();
-        }
+      if (!ingredient.isCorrect) {
+        setErrorMessage(ingredient.errorMessage ?? 'Toto do kaše nepatrí!');
+        playError();
         return;
       }
 
       // Correct ingredient: check for overflow
-      const correctIng = CORRECT_INGREDIENTS.find((ing) => ing.id === ingredientId);
+      const correctIng = getCorrectIngredient(ingredientId);
       if (!correctIng) return;
 
-      const currentCount = ingredientCounts[ingredientId];
+      const currentCount = ingredientCounts[ingredientId as CorrectIngredientId] ?? 0;
       if (currentCount >= correctIng.targetCount) {
         setErrorMessage(correctIng.overflowMessage);
         playError();
@@ -199,8 +176,8 @@ export function BowlGame() {
       const newCounts = { ...ingredientCounts, [ingredientId]: currentCount + 1 };
       setIngredientCounts(newCounts);
 
-      const nowComplete = CORRECT_INGREDIENTS.every(
-        (ing) => newCounts[ing.id] === ing.targetCount
+      const nowComplete = CORRECT_IDS.every(
+        (id) => newCounts[id] === getCorrectIngredient(id)?.targetCount
       );
       if (nowComplete) {
         setShowSuccess(true);
@@ -213,7 +190,7 @@ export function BowlGame() {
   );
 
   const handleDragEnd = useCallback(
-    (ingredientId: AllIngredientId) =>
+    (ingredientId: string) =>
       (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         setDraggedIngredient(null);
         // Clear previous error immediately on any new drop attempt.
@@ -234,8 +211,9 @@ export function BowlGame() {
 
   // Build bowl contents for visual display
   const bowlContents: Array<{ id: string; icon: string }> = [];
-  CORRECT_INGREDIENTS.forEach((ing) => {
-    for (let i = 0; i < ingredientCounts[ing.id]; i++) {
+  ALL_INGREDIENTS.filter((ing) => ing.isCorrect).forEach((ing) => {
+    const count = ingredientCounts[ing.id as CorrectIngredientId] ?? 0;
+    for (let i = 0; i < count; i++) {
       bowlContents.push({
         id: `${ing.id}-${i}`,
         icon: ing.unit === '⭐' ? '⭐' : ing.icon,
@@ -257,7 +235,7 @@ export function BowlGame() {
         </div>
 
         {/* Play field: bowl centered, ingredients scattered absolutely */}
-        <div className={styles.playField}>
+        <div ref={playFieldRef} className={styles.playField}>
           {/* Bowl — centered in the play field */}
           <div className={styles.bowlWrapper}>
             <motion.div
@@ -288,51 +266,33 @@ export function BowlGame() {
             </motion.div>
           </div>
 
-          {/* Correct ingredients — scattered in safe zones around the bowl */}
-          {CORRECT_INGREDIENTS.map((ingredient) => (
-            <motion.div
-              key={`${ingredient.id}-${resetKey}`}
-              className={styles.ingredient}
-              style={{
-                backgroundColor: ingredient.color,
-                top: ingredient.position.top,
-                left: ingredient.position.left,
-              }}
-              drag={!isComplete}
-              dragElastic={0.1}
-              dragMomentum={false}
-              dragSnapToOrigin
-              onDragStart={() => setDraggedIngredient(ingredient.id)}
-              onDragEnd={handleDragEnd(ingredient.id)}
-              whileDrag={{ scale: 1.15, zIndex: 100 }}
-            >
-              <span className={styles.ingredientIcon}>{ingredient.icon}</span>
-              <span className={styles.ingredientName}>{ingredient.name}</span>
-            </motion.div>
-          ))}
-
-          {/* Wrong ingredients — also scattered in safe zones */}
-          {WRONG_INGREDIENTS.map((ingredient) => (
-            <motion.div
-              key={`${ingredient.id}-${resetKey}`}
-              className={styles.ingredient}
-              style={{
-                backgroundColor: ingredient.color,
-                top: ingredient.position.top,
-                left: ingredient.position.left,
-              }}
-              drag={!isComplete}
-              dragElastic={0.1}
-              dragMomentum={false}
-              dragSnapToOrigin
-              onDragStart={() => setDraggedIngredient(ingredient.id)}
-              onDragEnd={handleDragEnd(ingredient.id)}
-              whileDrag={{ scale: 1.15, zIndex: 100 }}
-            >
-              <span className={styles.ingredientIcon}>{ingredient.icon}</span>
-              <span className={styles.ingredientName}>{ingredient.name}</span>
-            </motion.div>
-          ))}
+          {/* All ingredients — anchor div handles ring placement; draggable motion.div
+               inside has origin 0,0 so dragSnapToOrigin reliably snaps back. */}
+          {ALL_INGREDIENTS.map((ingredient, idx) => {
+            const offset = getIngredientOffset(idx, fieldSize);
+            return (
+              <div
+                key={`${ingredient.id}-${resetKey}`}
+                className={styles.ingredientAnchor}
+                style={{ transform: `translate(${offset.x}px, ${offset.y}px)` }}
+              >
+                <motion.div
+                  className={styles.ingredientTile}
+                  style={{ backgroundColor: ingredient.color }}
+                  drag={!isComplete}
+                  dragElastic={0.1}
+                  dragMomentum={false}
+                  dragSnapToOrigin
+                  onDragStart={() => setDraggedIngredient(ingredient.id)}
+                  onDragEnd={handleDragEnd(ingredient.id)}
+                  whileDrag={{ scale: 1.15, zIndex: 100 }}
+                >
+                  <span className={styles.ingredientIcon}>{ingredient.icon}</span>
+                  <span className={styles.ingredientName}>{ingredient.name}</span>
+                </motion.div>
+              </div>
+            );
+          })}
 
           {/* Reset button — shown after game is complete */}
           {isComplete && (
