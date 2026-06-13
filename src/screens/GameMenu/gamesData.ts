@@ -20,7 +20,7 @@ export const games: GameItem[] = [
   },
   {
     id: 'kitchen',
-    title: 'Kuchyňa',
+    title: 'Kuchyňa dobrovoľníkov',
     description: 'Spáruj predmety s pomocníkmi',
     icon: '👨‍🍳',
     path: '/kids/kitchen',
