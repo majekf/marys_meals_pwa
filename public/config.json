@@ -1,0 +1,37 @@
+{
+  "version": "0.1.0",
+  "appName": "Mary's Meals Slovakia",
+  "features": {
+    "kidsMode": {
+      "enabled": true,
+      "games": {
+        "bowlGame": true,
+        "volunteerKitchen": true,
+        "worldMap": false,
+        "schoolBell": false
+      }
+    },
+    "adultsMode": {
+      "enabled": true,
+      "sections": {
+        "elevenCents": true,
+        "donationCalculator": true,
+        "getInvolved": true,
+        "schoolFeeding": false,
+        "stories": false
+      }
+    },
+    "audio": {
+      "enabled": true,
+      "sfx": true,
+      "narration": false
+    },
+    "adminPanel": false,
+    "analytics": false
+  },
+  "settings": {
+    "idleTimeoutMs": 180000,
+    "adultLockHoldMs": 2000,
+    "defaultLocale": "sk"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "Mary's Meals Slovakia",
+  "short_name": "Mary's Meals",
+  "description": "Edukatívna aplikácia o charitatívnej organizácii Mary's Meals",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#ffffff",
+  "theme_color": "#009ddc",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "lang": "sk",
+  "categories": ["education", "kids"]
+}

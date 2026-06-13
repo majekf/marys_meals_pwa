@@ -1,0 +1,44 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-overlay);
+  pointer-events: none;
+}
+
+.overlay.success {
+  background-color: rgba(0, 0, 0, 0.20);
+  color: #ffffff;
+}
+
+.overlay.error {
+  background-color: rgba(229, 57, 53, 0.15);
+  color: var(--color-error);
+}
+
+.overlay.info {
+  background-color: rgba(0, 157, 220, 0.15);
+  color: var(--color-primary);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.message {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+  margin: 0;
+}

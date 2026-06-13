@@ -1,0 +1,1 @@
+export { AdultsMenu } from './AdultsMenu';

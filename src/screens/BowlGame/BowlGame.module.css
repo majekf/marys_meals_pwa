@@ -1,0 +1,200 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  overflow: hidden;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-lg);
+  gap: var(--spacing-xl);
+}
+
+.instructions {
+  text-align: center;
+  color: white;
+}
+
+.instructions h2 {
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--spacing-sm);
+}
+
+.instructions p {
+  font-size: var(--font-size-base);
+  opacity: 0.9;
+  margin: 0;
+}
+
+.gameArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 800px;
+  gap: var(--spacing-xl);
+}
+
+.ingredientsRow {
+  display: flex;
+  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.ingredient {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  width: 100px;
+  height: 100px;
+  border-radius: var(--radius-xl);
+  cursor: grab;
+  touch-action: none;
+  box-shadow: var(--shadow-lg);
+  border: 3px solid white;
+  position: relative;
+  user-select: none;
+}
+
+.ingredient:active {
+  cursor: grabbing;
+}
+
+.ingredient.added {
+  cursor: default;
+  border-color: var(--color-success);
+}
+
+.emoji {
+  font-size: 2.5rem;
+}
+
+.name {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+.checkmark {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 28px;
+  height: 28px;
+  background: var(--color-success);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+  box-shadow: var(--shadow-md);
+}
+
+.bowlArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.bowl {
+  width: 200px;
+  height: 140px;
+  background: linear-gradient(180deg, #f5f5dc 0%, #e8e4c9 50%, #d4ceb5 100%);
+  border-radius: 0 0 100px 100px;
+  border: 4px solid #8B7355;
+  border-top: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.2),
+    inset 0 -10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.bowl::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -15px;
+  right: -15px;
+  height: 20px;
+  background: linear-gradient(180deg, #a08060 0%, #8B7355 100%);
+  border-radius: 10px 10px 0 0;
+}
+
+.bowlActive {
+  background: linear-gradient(180deg, #e0f7fa 0%, #b2ebf2 50%, #80deea 100%);
+}
+
+.bowlContents {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  justify-content: center;
+  padding: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.bowlIngredient {
+  font-size: 1.5rem;
+}
+
+.bowlPlaceholder {
+  font-size: 3rem;
+  opacity: 0.5;
+}
+
+.progress {
+  color: white;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.resetButton {
+  padding: var(--spacing-md) var(--spacing-xl);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  min-height: var(--touch-comfortable);
+}
+
+.resetButton:hover {
+  background: var(--color-accent-dark);
+}
+
+@media (max-width: 600px) {
+  .ingredient {
+    width: 80px;
+    height: 80px;
+  }
+
+  .emoji {
+    font-size: 2rem;
+  }
+
+  .bowl {
+    width: 160px;
+    height: 110px;
+  }
+}
