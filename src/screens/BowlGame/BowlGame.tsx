@@ -12,22 +12,26 @@ import styles from './BowlGame.module.css';
 // snaps back to the anchor's center — the tile's ring position.
 // ═══════════════════════════════════════════════════════════════════════════
 const TILE_SIZE = 72;
-const BASE_RADIUS = 210;
+const BASE_RADIUS = 280; // Increased from 210 for more distance from bowl
+const MAX_ORGANIC_OFFSET = 75; // Maximum deviation from ellipse in any direction
 
-const organicOffsets: ReadonlyArray<{ x: number; y: number }> = [
-  { x: 0, y: -8 },
-  { x: 10, y: -4 },
-  { x: 8, y: 8 },
-  { x: 0, y: 12 },
-  { x: -10, y: 6 },
-  { x: -12, y: -4 },
-  { x: 0, y: 10 },
-  { x: 12, y: 4 },
-  { x: 8, y: -8 },
-  { x: -4, y: -12 },
-  { x: -12, y: 2 },
-  { x: -6, y: 10 },
-];
+// Seeded pseudo-random function: deterministic per index so positions never change,
+// but varied enough to look organic. Uses a simple hash-based approach.
+function seededRandom(seed: number): number {
+  const x = Math.sin(seed * 12.9898) * 43758.5453;
+  return x - Math.floor(x);
+}
+
+// Generate organic offsets dynamically using seeded randomness.
+// Each ingredient always gets the same offset (deterministic), but highly varied.
+function getOrganicOffset(index: number): { x: number; y: number } {
+  const rx = seededRandom(index * 2);
+  const ry = seededRandom(index * 2 + 1);
+  return {
+    x: (rx - 0.5) * MAX_ORGANIC_OFFSET * 2,
+    y: (ry - 0.5) * MAX_ORGANIC_OFFSET * 2,
+  };
+}
 
 function getSafeRadius(fieldSize: { width: number; height: number }): number {
   if (!fieldSize.width || !fieldSize.height) return BASE_RADIUS;
@@ -35,7 +39,11 @@ function getSafeRadius(fieldSize: { width: number; height: number }): number {
   const halfTile = TILE_SIZE / 2;
   const maxX = fieldSize.width / 2 - halfTile - padding;
   const maxY = fieldSize.height / 2 - halfTile - padding;
-  const safeRadius = Math.min(BASE_RADIUS, maxX / 1.12, maxY / 0.82);
+  // Effective reach factors account for ellipse stretch and max organic offsets.
+  // At BASE_RADIUS=280, max organic ±75 px:
+  // maxX reach ≈ 1.12 * radius + 75 → factor ≈ 1.39
+  // maxY reach ≈ 0.82 * radius + 75 → factor ≈ 1.09
+  const safeRadius = Math.min(BASE_RADIUS, maxX / 1.39, maxY / 1.09);
   return Math.max(120, safeRadius);
 }
 
@@ -45,12 +53,15 @@ function getIngredientOffset(
 ): { x: number; y: number } {
   const angle = ((index * 30 - 90) * Math.PI) / 180;
   const radius = getSafeRadius(fieldSize);
+  // Scale organic offsets proportionally so spacing stays consistent at
+  // smaller radii (e.g. when the browser is zoomed in).
+  const radiusScale = radius / BASE_RADIUS;
   const ellipseX = radius * 1.12;
   const ellipseY = radius * 0.82;
-  const organic = organicOffsets[index % organicOffsets.length];
+  const organic = getOrganicOffset(index);
   return {
-    x: Math.cos(angle) * ellipseX + organic.x,
-    y: Math.sin(angle) * ellipseY + organic.y,
+    x: Math.cos(angle) * ellipseX + organic.x * radiusScale,
+    y: Math.sin(angle) * ellipseY + organic.y * radiusScale,
   };
 }
 
@@ -86,9 +97,9 @@ type IngredientData = {
 
 const ALL_INGREDIENTS: ReadonlyArray<IngredientData> = [
   // Mixed order: C, W, C, W, W, C, W, W, C, W, W, W
-  { id: 'corn', name: 'Kukuričná kaša', icon: '🌽', color: '#FFD54F', isCorrect: true, targetCount: 7, unit: '🥄', overflowMessage: 'Ups! Príliš veľa kaše – miska pretečie! 🌽💨' },
+  { id: 'corn', name: 'Kukuričná kaša', icon: '🌽', color: '#FFD54F', isCorrect: true, targetCount: 7, unit: '🥄', overflowMessage: 'Ups! Kaša je už veľmi hustá. 🌽💨' },
   { id: 'cola', name: 'Cola', icon: '🥤', color: '#5D4037', isCorrect: false, errorMessage: 'Cola do kaše nepatrí! Deti potrebujú výživnú kašu, nie sladký nápoj. 🚫🥤' },
-  { id: 'soy', name: 'Sója', icon: '🫘', color: '#8D6E63', isCorrect: true, targetCount: 2, unit: '🥄', overflowMessage: 'Ojoj, príliš veľa sóje! Bude to príliš husté. 🫘' },
+  { id: 'soy', name: 'Sója', icon: '🫘', color: '#8D6E63', isCorrect: true, targetCount: 2, unit: '🥄', overflowMessage: 'Ojoj, príliš veľa sóje!. 🫘' },
   { id: 'chips', name: 'Čipsy', icon: '🍟', color: '#FFB74D', isCorrect: false, errorMessage: 'Čipsy sú chutné, ale do kaše nepatria! 🍟❌' },
   { id: 'lollipop', name: 'Lízanka', icon: '🍭', color: '#F48FB1', isCorrect: false, errorMessage: 'Lízanka je sladká, ale deti potrebujú skutočné jedlo plné správnej výživy. 🍭' },
   { id: 'sugar', name: 'Cukor', icon: '🍯', color: '#FFFDE7', isCorrect: true, targetCount: 1, unit: '🥄', overflowMessage: 'Ups, už je to príliš sladké! 🍯😋' },
