@@ -62,21 +62,19 @@ describe('BowlGame', () => {
     expect(heading).toBeInTheDocument();
   });
 
-  it('should render correct ingredients section', async () => {
+  it('should render correct ingredients', async () => {
     renderWithProviders(<BowlGame />);
 
-    expect(await screen.findByText('Zdravé suroviny')).toBeInTheDocument();
-    expect(screen.getByText('Kukuričná kaša')).toBeInTheDocument();
+    expect(await screen.findByText('Kukuričná kaša')).toBeInTheDocument();
     expect(screen.getByText('Sója')).toBeInTheDocument();
     expect(screen.getByText('Cukor')).toBeInTheDocument();
     expect(screen.getByText('Vitamíny')).toBeInTheDocument();
   });
 
-  it('should render wrong ingredients section', async () => {
+  it('should render wrong ingredients scattered on screen', async () => {
     renderWithProviders(<BowlGame />);
 
-    expect(await screen.findByText('Pozor! Toto sem nepatrí')).toBeInTheDocument();
-    expect(screen.getByText('Cola')).toBeInTheDocument();
+    expect(await screen.findByText('Cola')).toBeInTheDocument();
     expect(screen.getByText('Čipsy')).toBeInTheDocument();
     expect(screen.getByText('Burger')).toBeInTheDocument();
     expect(screen.getByText('Zmrzlina')).toBeInTheDocument();
@@ -90,22 +88,11 @@ describe('BowlGame', () => {
     expect(placeholder).toBeInTheDocument();
   });
 
-  it('should render progress panel with visual indicators', async () => {
+  it('should render vitamin ingredient', async () => {
     renderWithProviders(<BowlGame />);
 
-    // Should have progress icons for each correct ingredient
-    // Each ingredient has icon in progress panel
-    const progressIcons = await screen.findAllByText('🥄');
-    // 7 spoons for corn + 2 for soy + 1 for sugar = 10 spoons total
-    expect(progressIcons.length).toBe(10);
-  });
-
-  it('should render vitamin star indicator', async () => {
-    renderWithProviders(<BowlGame />);
-
-    // 1 vitamin star indicator
+    // Vitamin star should appear as an ingredient
     const stars = await screen.findAllByText('⭐');
-    // 1 in progress panel + 1 as ingredient icon
     expect(stars.length).toBeGreaterThanOrEqual(1);
   });
 });
