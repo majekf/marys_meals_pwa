@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect, useLayoutEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { PanInfo } from 'framer-motion';
 import { Header, FeedbackOverlay } from '../../components/shared';
 import { useIdleTimer, useAudio } from '../../hooks';
@@ -12,8 +12,8 @@ import styles from './BowlGame.module.css';
 // snaps back to the anchor's center — the tile's ring position.
 // ═══════════════════════════════════════════════════════════════════════════
 const TILE_SIZE = 72;
-const BASE_RADIUS = 280; // Increased from 210 for more distance from bowl
-const MAX_ORGANIC_OFFSET = 75; // Maximum deviation from ellipse in any direction
+const BASE_RADIUS = 500; // Increased from 210 for more distance from bowl
+const MAX_ORGANIC_OFFSET = 100; // Maximum deviation from ellipse in any direction
 
 // Seeded pseudo-random function: deterministic per index so positions never change,
 // but varied enough to look organic. Uses a simple hash-based approach.
@@ -43,7 +43,13 @@ function getSafeRadius(fieldSize: { width: number; height: number }): number {
   // At BASE_RADIUS=280, max organic ±75 px:
   // maxX reach ≈ 1.12 * radius + 75 → factor ≈ 1.39
   // maxY reach ≈ 0.82 * radius + 75 → factor ≈ 1.09
-  const safeRadius = Math.min(BASE_RADIUS, maxX / 1.39, maxY / 1.09);
+  
+  // Detect browser zoom level and scale BASE_RADIUS accordingly
+  // When zoomed in, divide radius to compensate for CSS pixel constraint
+  const zoomLevel = window.devicePixelRatio || 1;
+  const scaledBaseRadius = BASE_RADIUS / zoomLevel;
+  
+  const safeRadius = Math.min(scaledBaseRadius, maxX / 1.39, maxY / 1.09);
   return Math.max(120, safeRadius);
 }
 
@@ -115,6 +121,11 @@ const ALL_INGREDIENTS: ReadonlyArray<IngredientData> = [
 const CORRECT_IDS = ['corn', 'soy', 'sugar', 'vitamins'] as const;
 type CorrectIngredientId = (typeof CORRECT_IDS)[number];
 
+const TOTAL_TARGET = ALL_INGREDIENTS.filter((ing) => ing.isCorrect).reduce(
+  (sum, ing) => sum + (ing.targetCount ?? 0),
+  0
+);
+
 const getCorrectIngredient = (id: string) =>
   ALL_INGREDIENTS.find((ing) => ing.id === id && ing.isCorrect) as IngredientData & { targetCount: number; unit: string; overflowMessage: string } | undefined;
 
@@ -129,6 +140,9 @@ export function BowlGame() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [draggedIngredient, setDraggedIngredient] = useState<string | null>(null);
   const [resetKey, setResetKey] = useState(0);
+  const [showIntroHint, setShowIntroHint] = useState(true);
+  const [showMultipleHint, setShowMultipleHint] = useState(false);
+  const multipleHintShownRef = useRef(false);
   const bowlRef = useRef<HTMLDivElement>(null);
   const [playFieldRef, fieldSize] = useElementSize();
   const { playSuccess, playError, playComplete } = useAudio();
@@ -143,11 +157,33 @@ export function BowlGame() {
     return () => clearTimeout(timer);
   }, [errorMessage]);
 
+  // Auto-dismiss intro hint after 1.5 s whenever it becomes visible (including after reset)
+  useEffect(() => {
+    if (!showIntroHint) return;
+    const timer = setTimeout(() => setShowIntroHint(false), 1500);
+    return () => clearTimeout(timer);
+  }, [showIntroHint]);
+
   const isComplete = CORRECT_IDS.every(
     (id) => ingredientCounts[id] === getCorrectIngredient(id)?.targetCount
   );
 
   const totalItemsInBowl = Object.values(ingredientCounts).reduce((sum, c) => sum + c, 0);
+
+  const activeHintMessage = showIntroHint
+    ? 'Potiahni správne suroviny do misky'
+    : showMultipleHint
+      ? 'Niektoré suroviny treba viac-krát.'
+      : null;
+
+  // Show "multiple ingredients" hint once after 3 correct drops
+  useEffect(() => {
+    if (totalItemsInBowl < 3 || multipleHintShownRef.current) return;
+    multipleHintShownRef.current = true;
+    setShowMultipleHint(true);
+    const timer = setTimeout(() => setShowMultipleHint(false), 2500);
+    return () => clearTimeout(timer);
+  }, [totalItemsInBowl]);
 
   const checkDropInBowl = useCallback(
     (info: PanInfo, ingredientId: string) => {
@@ -218,6 +254,9 @@ export function BowlGame() {
     setShowSuccess(false);
     setErrorMessage(null);
     setResetKey((k) => k + 1);
+    setShowIntroHint(true);
+    setShowMultipleHint(false);
+    multipleHintShownRef.current = false;
   }, []);
 
   // Build bowl contents for visual display
@@ -240,13 +279,28 @@ export function BowlGame() {
         {/* Top bar: instructions only */}
         <div className={styles.topBar}>
           <div className={styles.instructions}>
-            <h2>Priprav výživnú kašu! 🥣</h2>
-            <p>Potiahni správne suroviny do misky v správnom množstve</p>
+            <h2> <br /> <br /> Priprav výživnú kašu! 🥣</h2>
           </div>
         </div>
 
         {/* Play field: bowl centered, ingredients scattered absolutely */}
         <div ref={playFieldRef} className={styles.playField}>
+          {/* Hint banner */}
+          <AnimatePresence>
+            {activeHintMessage && (
+              <motion.div
+                key={activeHintMessage}
+                className={styles.hintBanner}
+                initial={{ opacity: 0, y: -12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.3 }}
+              >
+                💡 {activeHintMessage}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Bowl — centered in the play field */}
           <div className={styles.bowlWrapper}>
             <motion.div
@@ -275,6 +329,7 @@ export function BowlGame() {
               </div>
               {totalItemsInBowl === 0 && <span className={styles.bowlPlaceholder}>🥣</span>}
             </motion.div>
+            <span className={styles.progressCounter}>{totalItemsInBowl}/{TOTAL_TARGET}</span>
           </div>
 
           {/* All ingredients — anchor div handles ring placement; draggable motion.div
