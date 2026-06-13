@@ -13,15 +13,13 @@ Prvá vec, ktorú každý návštevník uvidí po spustení aplikácie, je **úv
 - **„Pre deti"** – spustí hravý detský svet s hrami
 - **„Pre zvedavých"** – otvorí informačnú sekciu pre dospelých
 
-> **Rodičovský zámok:** Tlačidlo „Pre zvedavých" je chránené jednoduchým detským zámkom – návštevník ho musí **podržať 2 sekundy**, aby vstúpil do dospelej sekcie. Deti tak nemôžu náhodne prepnúť do dospelého obsahu.
-
 Aplikácia sa automaticky vráti na túto obrazovku, ak sa nikto nedotkne tabletu **3 minúty** (ochrana pred zanechaním tabletu na nesprávnej obrazovke).
 
 **Súbory v repozitári:**
 - `src/screens/ModeSelect/ModeSelect.tsx` – logika a rozloženie obrazovky
 - `src/screens/ModeSelect/ModeSelect.module.css` – vizuálny štýl
 - `src/hooks/useIdleTimer.ts` – automatické vrátenie na úvodnú obrazovku po nečinnosti
-- `public/config.json` – nastavenie časovačov (3 min nečinnosť, 2 s podržanie)
+- `public/config.json` – nastavenie časovačov (3 min nečinnosť)
 
 ---
 
@@ -51,9 +49,10 @@ Dieťa pripravuje **likuni phala** – výživnú kašu, ktorú Mary's Meals var
 **Nesprávne suroviny (lákavé, ale nepatria do kaše):**
 Cola 🥤, Čipsy 🍟, Lízanka 🍭, Burger 🍔, Čokoláda 🍫, Zmrzlina 🍦, Kečup 🍅, Cukríky 🍬
 
-- Dieťa ťahá jednotlivé „lyžičky" (malé kopčeky) surovín do misky
+- Dieťa ťahá jednotlivé suroviny do misky (rozmiestnené organicky v elipse okolo misky)
 - Pri každom ťahu sa pridá jedna jednotka danej suroviny
-- Progres sa zobrazuje **vizuálne** pomocou ikon lyžičiek/hviezdičiek (nie číslami)
+- Progres sa zobrazuje **vizuálne** pomocou ikon priamo v miske aj **číselne** ako `X/Y` pod miskou
+- Na začiatku hry sa zobrazí hint „Potiahni správne suroviny do misky" (zmizne po 1,5 s); po 3 správnych prihodeniach sa raz zobrazí hint „Niektoré suroviny treba viac-krát."
 - Ak dieťa pridá **nesprávnu surovinu**, zobrazí sa vtipná správa (napr. „Čokoláda je dobrota, ale deti potrebujú výživu! 🍫")
 - Ak dieťa pridá **príliš veľa** správnej suroviny, zobrazí sa upozornenie (napr. „Ups, už je to príliš sladké! 🍯😋" pre cukor)
 - Po správnom dokončení sa miska sfarbí nazeleno a zobrazí sa gratulačná správa
@@ -70,16 +69,27 @@ Hra učí deti, z čoho sa skladá obed, ktorý Mary's Meals varí, a podporuje 
 
 ### Hra 2 – Kuchyňa dobrovoľníkov 👨‍🍳
 
-Dieťa **spáruje predmety s pomocníkmi** v kuchyni. Na obrazovke sú tri dobrovoľníci (kuchár, pomocník, nosič) a tri predmety (hrniec, naberačka, košík). Úlohou je priradiť každému pomocníkovi správny predmet.
+Dieťa **spáruje predmety s postavami**. Na obrazovke je päť postáv a päť predmetov. Úlohou je priradiť každej postave správny predmet.
 
-- Najprv dieťa klikne na predmet (označí sa)
-- Potom klikne na správneho pomocníka
-- Ak je dvojica správna, spojenie sa potvrdí; ak nie, obrazovka upozorní na chybu
+**Postavy a ich predmety:**
+| Postava | Predmet |
+|---|---|
+| 🤝 Darca | 🪙 Minca |
+| 👩‍🍳 Kuchárka | 🥄 Varecha |
+| 👨‍🏫 Učiteľ | 📚 Kniha |
+| 👨‍🌾 Farmár | 🌱 Semeno |
+| 🧒 Dieťa | 🥣 Miska |
 
-Hra učí, kto všetko sa podieľa na príprave jedla pre deti. V navigačnej lište sú šípky **‹ / ›** na priame prechody medzi hrami.
+- Postavy aj predmety sú pri každej hre **náhodne zamiešané**
+- Dieťa **ťahá predmet** na správnu postavu (drag-and-drop)
+- Ak je priradenie správne, predmet zmizne a postava zobrazí odznak; ak nie, predmet sa vráti späť
+- Postup zobrazuje počítadlo „X / Y priradených"
+- Po správnom dokončení všetkých párov sa zobrazí gratulačná správa a tlačidlo **„Hrať znova"**
+
+Hra učí, kto všetko sa podieľa na fungovaní Mary's Meals. V navigačnej lište sú šípky **‹ / ›** na priame prechody medzi hrami.
 
 **Súbory v repozitári:**
-- `src/screens/VolunteerKitchen/VolunteerKitchen.tsx` – herná logika (výber, párovanie, validácia)
+- `src/screens/VolunteerKitchen/VolunteerKitchen.tsx` – herná logika (drag-and-drop párovanie, validácia, shuffle)
 - `src/screens/VolunteerKitchen/VolunteerKitchen.module.css` – vizuálny štýl
 
 ---
@@ -102,7 +112,7 @@ Táto sekcia vysvetľuje **silu malého príspevku**. Jeden obed pre dieťa v š
 |---|---|
 | 🍽️ Jeden obed | Stačí 11 centov na výživný obed v škole |
 | 📚 Vzdelanie | Stravovanie motivuje rodičov posielať deti do školy |
-| 🌍 2,4 milióna detí | Mary's Meals denne nakŕmi viac ako 2,4 milióna detí v 18 krajinách |
+| 🌍 Viac ako 3 milióny detí | Mary's Meals denne nakŕmi viac ako 3 milióny detí v 16 krajinách |
 | 💪 Dobrovoľníci | Vďaka dobrovoľníkom ide 93 % darov priamo deťom |
 
 Na konci sekcie je odkaz na kalkulačku pomoci.
