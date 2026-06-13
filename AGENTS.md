@@ -62,7 +62,6 @@ All screens/features are gated via `public/config.json` — edit this file to en
 
 Key settings:
 - `settings.idleTimeoutMs` — auto-return to `/` after inactivity (default 3 min)
-- `settings.adultLockHoldMs` — hold duration for adult lock (default 2 s)
 - `features.audio.sfx` — enables/disables sound effects
 
 ## Conventions
@@ -74,7 +73,7 @@ Key settings:
 - **Brand colours**: `#009ddc` (blue), `#f4a912` (orange) — defined as CSS variables in `src/styles/global.css`
 - **Font**: Poppins (loaded globally)
 - **Animation**: use `framer-motion` for transitions and feedback overlays
-- **Full-screen layout**: All screen containers must have `width: 100%; height: 100vh` and their main content areas must explicitly set `width: 100%` to avoid width collapse when children are `position: absolute`. The `#root` div in `index.css` must remain simple (`width: 100%; min-height: 100vh`) to not constrain child components.
+- **Layout**: See "Known Layout Gotchas" for full-screen and absolute positioning best practices
 
 ## Testing
 
@@ -179,6 +178,43 @@ Framer-motion owns the `transform` property on any `motion.div` it controls. Nev
 
 This keeps ring/placement logic in the anchor and drag logic in the motion element, with no conflicts.
 
+**Drag-and-drop hit detection (drop zone check):**
+To detect which element a dragged tile was dropped on, do NOT rely on CSS `:hover` or framer-motion's `onHoverStart`. Instead, use `getBoundingClientRect()` on `ref`-ed drop-zone elements and compare with `info.point` from framer-motion's `PanInfo` in `onDragEnd`:
+
+```tsx
+const getDropTarget = (point: { x: number; y: number }) => {
+  for (const [id, el] of zoneRefs.current.entries()) {
+    const rect = el.getBoundingClientRect();
+    if (point.x >= rect.left && point.x <= rect.right &&
+        point.y >= rect.top  && point.y <= rect.bottom) return id;
+  }
+  return null;
+};
+// usage: onDragEnd={(_e, info) => { const target = getDropTarget(info.point); ... }}
+```
+
+**Measuring container dimensions for proportional layout:**
+When game elements must be positioned relative to a container (e.g., ring of ingredients around a bowl), measure the container with `useLayoutEffect` + `ResizeObserver` — not `useEffect` — to avoid a single-frame flicker where elements render at wrong positions:
+
+```tsx
+function useElementSize() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  useLayoutEffect(() => {
+    if (!ref.current) return;
+    const observer = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      setSize({ width, height });
+    });
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return [ref, size] as const;
+}
+```
+
+Pass `size` into offset calculations so elements stay within the viewport at any browser zoom level.
+
 ## PWA / Deployment
 
 - Service worker via `vite-plugin-pwa` (Workbox); configured in `vite.config.ts`
@@ -199,5 +235,4 @@ This app runs as a kiosk on a **landscape tablet** (typically 768–1280 px wide
 - **Font size.** Use `var(--font-size-lg)` (1.25 rem) or larger for body text visible across a table from standing distance. `var(--font-size-sm)` (0.875 rem) is for labels only.
 - **Buttons on ModeSelect** have `min-width: 250px` and `size="xl"` to be easily tappable with a full finger.
 - **Idle timer** (`useIdleTimer`) is active on every screen except `/`. If 3 minutes pass without touch, the app returns to ModeSelect automatically.
-- **Adult lock** on ModeSelect requires a 2-second press-and-hold (`onPointerDown` / `onPointerUp`) — protects the adult section from accidental child access.
 - **Landscape orientation** is declared in `public/manifest.webmanifest` (`"orientation": "landscape"`).
