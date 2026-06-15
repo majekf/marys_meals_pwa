@@ -37,6 +37,7 @@ export interface FeaturesConfig {
   audio: AudioConfig;
   adminPanel: boolean;
   analytics: boolean;
+  dataCollection: boolean;
 }
 
 export interface SettingsConfig {
@@ -83,6 +84,7 @@ export const defaultConfig: AppConfig = {
     },
     adminPanel: false,
     analytics: false,
+    dataCollection: false,
   },
   settings: {
     idleTimeoutMs: 180000,

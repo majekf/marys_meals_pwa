@@ -38,6 +38,7 @@ describe('ModeSelect', () => {
             audio: { enabled: true, sfx: true, narration: false },
             adminPanel: false,
             analytics: false,
+            dataCollection: false,
           },
           settings: {
             idleTimeoutMs: 180000,

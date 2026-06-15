@@ -27,7 +27,8 @@
       "narration": false
     },
     "adminPanel": false,
-    "analytics": false
+    "analytics": false,
+    "dataCollection": false
   },
   "settings": {
     "idleTimeoutMs": 180000,

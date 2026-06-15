@@ -177,6 +177,124 @@
   color: var(--color-error);
 }
 
+/* Paper contact view (dataCollection disabled) */
+.paperView {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-lg);
+  text-align: center;
+  width: 100%;
+}
+
+.paperOptionIcon {
+  font-size: 3rem;
+}
+
+.paperTitle {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.paperSubtitle {
+  font-size: var(--font-size-base);
+  color: var(--color-text-light);
+  margin: 0;
+}
+
+.paperInstructionBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  background: var(--color-surface);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-xl) var(--spacing-2xl);
+  max-width: 480px;
+  width: 100%;
+}
+
+.paperPencilIcon {
+  font-size: 3rem;
+}
+
+.paperInstruction {
+  font-size: var(--font-size-lg);
+  color: var(--color-text);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.paperInstructionSub {
+  font-size: var(--font-size-base);
+  color: var(--color-text-light);
+  margin: 0;
+}
+
+/* QR code view (donate without dataCollection) */
+.qrView {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-lg);
+  text-align: center;
+  width: 100%;
+}
+
+.qrHeading {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.qrCodeWrapper {
+  position: relative;
+  width: 240px;
+  height: 240px;
+}
+
+.qrImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--color-border);
+}
+
+.qrFallback {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  width: 240px;
+  height: 240px;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.qrFallback span {
+  font-size: 3rem;
+}
+
+.qrFallback p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-light);
+  margin: 0;
+  padding: 0 var(--spacing-md);
+}
+
+.qrLink {
+  font-size: var(--font-size-base);
+  color: var(--color-text-light);
+  margin: 0;
+}
+
 @media (max-width: 600px) {
   .optionsGrid {
     grid-template-columns: 1fr;

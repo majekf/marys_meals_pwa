@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Header, Button, FeedbackOverlay } from '../../components/shared';
 import { useIdleTimer } from '../../hooks';
+import { useConfig } from '../../config';
 import styles from './GetInvolved.module.css';
 
 const INVOLVEMENT_OPTIONS = [
@@ -31,6 +32,9 @@ const INVOLVEMENT_OPTIONS = [
   },
 ];
 
+type OptionItem = (typeof INVOLVEMENT_OPTIONS)[0];
+type View = 'options' | 'form' | 'paper' | 'qr';
+
 interface FormData {
   email: string;
   name: string;
@@ -46,29 +50,45 @@ const initialFormData: FormData = {
 };
 
 export function GetInvolved() {
+  const { config } = useConfig();
+  const dataCollection = config.features.dataCollection;
+
   const [formData, setFormData] = useState<FormData>(initialFormData);
-  const [selectedInterest, setSelectedInterest] = useState<string | null>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<OptionItem | null>(null);
+  const [view, setView] = useState<View>('options');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [errors, setErrors] = useState<Partial<FormData>>({});
 
-  // Activate idle timer
   useIdleTimer();
 
-  const handleSelectInterest = useCallback((id: string) => {
-    setSelectedInterest(id);
-    setFormData((prev) => ({ ...prev, interest: id }));
-    setShowForm(true);
-  }, []);
+  const handleSelectOption = useCallback(
+    (option: OptionItem) => {
+      setSelectedOption(option);
+      setFormData((prev) => ({ ...prev, interest: option.id }));
 
-  const handleInputChange = useCallback((field: keyof FormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
-  }, [errors]);
+      if (!dataCollection) {
+        if (option.id === 'donate') {
+          setView('qr');
+        } else {
+          setView('paper');
+        }
+      } else {
+        setView('form');
+      }
+    },
+    [dataCollection],
+  );
+
+  const handleInputChange = useCallback(
+    (field: keyof FormData, value: string) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+      if (errors[field]) {
+        setErrors((prev) => ({ ...prev, [field]: undefined }));
+      }
+    },
+    [errors],
+  );
 
   const validateForm = useCallback((): boolean => {
     const newErrors: Partial<FormData> = {};
@@ -92,8 +112,6 @@ export function GetInvolved() {
 
     setIsSubmitting(true);
 
-    // Simulate form submission (would be replaced with actual API call)
-    // Store in IndexedDB for offline support
     try {
       const submission = {
         ...formData,
@@ -101,19 +119,17 @@ export function GetInvolved() {
         synced: false,
       };
 
-      // Store locally (would be synced when online)
       const stored = localStorage.getItem('mm_submissions') || '[]';
       const submissions = JSON.parse(stored);
       submissions.push(submission);
       localStorage.setItem('mm_submissions', JSON.stringify(submissions));
 
-      // Simulate API delay
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       setShowSuccess(true);
       setFormData(initialFormData);
-      setSelectedInterest(null);
-      setShowForm(false);
+      setSelectedOption(null);
+      setView('options');
     } catch (error) {
       console.error('Submission failed:', error);
     } finally {
@@ -122,8 +138,8 @@ export function GetInvolved() {
   }, [formData, validateForm]);
 
   const handleBack = useCallback(() => {
-    setShowForm(false);
-    setSelectedInterest(null);
+    setView('options');
+    setSelectedOption(null);
   }, []);
 
   return (
@@ -132,7 +148,7 @@ export function GetInvolved() {
 
       <main className={styles.main}>
         <AnimatePresence mode="wait">
-          {!showForm ? (
+          {view === 'options' && (
             <motion.div
               key="options"
               className={styles.content}
@@ -150,7 +166,7 @@ export function GetInvolved() {
                   <motion.button
                     key={option.id}
                     className={styles.optionCard}
-                    onClick={() => handleSelectInterest(option.id)}
+                    onClick={() => handleSelectOption(option)}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
@@ -164,7 +180,9 @@ export function GetInvolved() {
                 ))}
               </div>
             </motion.div>
-          ) : (
+          )}
+
+          {view === 'form' && (
             <motion.div
               key="form"
               className={styles.content}
@@ -177,12 +195,8 @@ export function GetInvolved() {
               </button>
 
               <div className={styles.formHeader}>
-                <span className={styles.formIcon}>
-                  {INVOLVEMENT_OPTIONS.find((o) => o.id === selectedInterest)?.icon}
-                </span>
-                <h2>
-                  {INVOLVEMENT_OPTIONS.find((o) => o.id === selectedInterest)?.title}
-                </h2>
+                <span className={styles.formIcon}>{selectedOption?.icon}</span>
+                <h2>{selectedOption?.title}</h2>
                 <p>Zanechajte nám kontakt a ozveme sa vám</p>
               </div>
 
@@ -241,6 +255,79 @@ export function GetInvolved() {
                   {isSubmitting ? 'Odosielam...' : 'Odoslať'}
                 </Button>
               </form>
+            </motion.div>
+          )}
+
+          {view === 'paper' && (
+            <motion.div
+              key="paper"
+              className={styles.content}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+            >
+              <button className={styles.backButton} onClick={handleBack}>
+                ← Späť
+              </button>
+
+              <div className={styles.paperView}>
+                <span className={styles.paperOptionIcon}>{selectedOption?.icon}</span>
+                <h2 className={styles.paperTitle}>{selectedOption?.title}</h2>
+                <p className={styles.paperSubtitle}>Zanechajte nám kontakt a ozveme sa vám</p>
+
+                <div className={styles.paperInstructionBox}>
+                  <span className={styles.paperPencilIcon}>✏️</span>
+                  <p className={styles.paperInstruction}>
+                    Napíšte prosím svoj <strong>e-mail</strong> do formulára na papieri.
+                  </p>
+                </div>
+
+                <p className={styles.modalText}>
+                  alebo navštívte <a href="https://marysmeals.sk" target="_blank" rel="noopener noreferrer">marysmeals.sk</a>
+                </p>
+              </div>
+            </motion.div>
+          )}
+
+          {view === 'qr' && (
+            <motion.div
+              key="qr"
+              className={styles.content}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+            >
+              <button className={styles.backButton} onClick={handleBack}>
+                ← Späť
+              </button>
+
+              <div className={styles.qrView}>
+                <span className={styles.paperOptionIcon}>{selectedOption?.icon}</span>
+                <h2 className={styles.paperTitle}>{selectedOption?.title}</h2>
+                <p className={styles.modalText}>Naskenujte QR kód</p>
+                <div className={styles.qrCodeWrapper}>
+                
+                  <img
+                    src="/images/qr/donation.png"
+                    alt="QR kód pre darovanie"
+                    className={styles.qrImage}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                      const fallback = (e.target as HTMLImageElement)
+                        .nextElementSibling as HTMLElement | null;
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                  <div className={styles.qrFallback}>
+                    <span>📱</span>
+                    <p>QR kód bude čoskoro k dispozícii</p>
+                  </div>
+                </div>
+
+                <p className={styles.modalText}>
+                  alebo navštívte <a href="https://marysmeals.sk" target="_blank" rel="noopener noreferrer">marysmeals.sk</a>
+                </p>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

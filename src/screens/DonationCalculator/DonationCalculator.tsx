@@ -173,7 +173,7 @@ export function DonationCalculator() {
               </div>
               
               <p className={styles.modalText}>
-                alebo navštívte <a href="https://marysmeals.sk/darovat" target="_blank" rel="noopener noreferrer">marysmeals.sk/darovat</a>
+                alebo navštívte <a href="https://marysmeals.sk" target="_blank" rel="noopener noreferrer">marysmeals.sk</a>
               </p>
               
               <Button variant="secondary" onClick={() => setShowQR(false)}>
