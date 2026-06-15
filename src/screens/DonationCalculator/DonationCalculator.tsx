@@ -172,6 +172,11 @@ export function DonationCalculator() {
                 </div>
               </div>
               
+              <div className={styles.accountSection}>
+                <p className={styles.accountLabel}>Číslo účtu:</p>
+                <p className={styles.accountNumber}>SK24 8330 0000 0008 1560 1560</p>
+              </div>
+              
               <p className={styles.modalText}>
                 alebo navštívte <a href="https://marysmeals.sk" target="_blank" rel="noopener noreferrer">marysmeals.sk</a>
               </p>
