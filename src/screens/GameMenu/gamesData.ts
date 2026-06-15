@@ -12,7 +12,7 @@ export interface GameItem {
 export const games: GameItem[] = [
   {
     id: 'bowl',
-    title: 'Miska jedla',
+    title: 'Miska nádeje',
     description: 'Potiahni ingrediencie do misky',
     icon: '🍲',
     path: '/kids/bowl',

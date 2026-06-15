@@ -273,7 +273,7 @@ export function BowlGame() {
 
   return (
     <div className={styles.container}>
-      <Header title="Miska jedla" variant="kids" showGameNav />
+      <Header title="Miska nádeje" variant="kids" showGameNav />
 
       <main className={styles.main}>
         {/* Top bar: instructions only */}
