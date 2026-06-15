@@ -1,38 +1,78 @@
+/* ── Base overlay ── */
 .overlay {
   position: fixed;
   inset: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
   z-index: var(--z-overlay);
   pointer-events: none;
 }
 
+/* ── SUCCESS: top toast with green card (no background dim) ── */
 .overlay.success {
-  background-color: rgba(0, 0, 0, 0.20);
+  align-items: flex-start;
+  justify-content: center;
+  background-color: transparent;
   color: #ffffff;
+  padding-top: 5rem;
 }
 
 .overlay.success .content {
   background: linear-gradient(135deg, #2e7d32 0%, #43a047 100%);
   border-radius: var(--radius-xl);
-  padding: 2.5rem 4rem;
+  padding: 1.25rem 3rem;
   box-shadow:
-    0 24px 64px rgba(0, 0, 0, 0.45),
-    0 0 0 4px rgba(255, 255, 255, 0.25);
-  border: 3px solid rgba(255, 255, 255, 0.35);
+    0 12px 32px rgba(0, 0, 0, 0.30),
+    0 0 0 3px rgba(255, 255, 255, 0.25);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  flex-direction: row;
+  gap: 1rem;
+}
+
+/* ── ERROR / INFO: non-blocking top toast ── */
+.overlay.error,
+.overlay.info {
+  align-items: flex-start;
+  justify-content: center;
+  /* no background – game stays fully visible */
+  background-color: transparent;
+  padding-top: 5rem; /* clear the header bar */
 }
 
 .overlay.error {
-  background-color: rgba(229, 57, 53, 0.15);
   color: var(--color-error);
 }
 
 .overlay.info {
-  background-color: rgba(0, 157, 220, 0.15);
   color: var(--color-primary);
 }
 
+.overlay.error .content,
+.overlay.info .content {
+  flex-direction: row;
+  gap: 0.75rem;
+  padding: 0.875rem 1.5rem;
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.overlay.error .content {
+  background: #fff5f5;
+  border: 2px solid rgba(229, 57, 53, 0.45);
+}
+
+.overlay.info .content {
+  background: #f0f8ff;
+  border: 2px solid rgba(0, 157, 220, 0.45);
+}
+
+/* hide the big SVG icon for all toast variants */
+.overlay.error .icon,
+.overlay.info .icon,
+.overlay.success .icon {
+  display: none;
+}
+
+/* ── Shared content ── */
 .content {
   display: flex;
   flex-direction: column;
@@ -51,4 +91,9 @@
   font-weight: var(--font-weight-semibold);
   text-align: center;
   margin: 0;
+}
+
+.overlay.error .message,
+.overlay.info .message {
+  font-size: var(--font-size-md, 1rem);
 }

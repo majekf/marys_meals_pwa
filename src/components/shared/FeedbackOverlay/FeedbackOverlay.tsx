@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './FeedbackOverlay.module.css';
 
@@ -8,6 +9,7 @@ interface FeedbackOverlayProps {
   type: FeedbackType;
   message?: string;
   onAnimationComplete?: () => void;
+  autoDismissDelay?: number; // ms to auto-dismiss (optional)
 }
 
 const icons = {
@@ -47,12 +49,25 @@ const icons = {
   ),
 };
 
+const toastVariants = {
+  initial: { opacity: 0, y: -20 },
+  animate: { opacity: 1, y: 0 },
+  exit:    { opacity: 0, y: -20 },
+};
+
 export function FeedbackOverlay({
   isVisible,
   type,
   message,
   onAnimationComplete,
+  autoDismissDelay = type === 'success' ? 3000 : undefined,
 }: FeedbackOverlayProps) {
+  // Auto-dismiss after specified delay
+  useEffect(() => {
+    if (!isVisible || !autoDismissDelay || !onAnimationComplete) return;
+    const timer = setTimeout(() => onAnimationComplete(), autoDismissDelay);
+    return () => clearTimeout(timer);
+  }, [isVisible, autoDismissDelay, onAnimationComplete]);
   return (
     <AnimatePresence onExitComplete={onAnimationComplete}>
       {isVisible && (
@@ -61,14 +76,15 @@ export function FeedbackOverlay({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.25 }}
         >
           <motion.div
             className={styles.content}
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.5, opacity: 0 }}
-            transition={{ type: 'spring', damping: 15, stiffness: 300 }}
+            variants={toastVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ type: 'spring', damping: 20, stiffness: 350 }}
           >
             <div className={styles.icon}>{icons[type]}</div>
             {message && <p className={styles.message}>{message}</p>}
